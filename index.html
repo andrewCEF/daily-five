@@ -339,7 +339,7 @@
   var DURATION = 5 * 60; // seconds
 
   // ---------- State ----------
-  function blank() { return { v: 2, tasks: [], deleted: {}, days: {}, focusId: null, focusTs: 0 }; }
+  function blank() { return { v: 2, tasks: [], deleted: {}, days: {}, focusId: null, focusTs: 0, remTime: "09:00", remTs: 0 }; }
   function load() {
     try {
       var raw = localStorage.getItem(KEY);
@@ -357,6 +357,7 @@
     if (s && s.deleted && typeof s.deleted === "object") out.deleted = s.deleted;
     if (s && s.days && typeof s.days === "object") out.days = s.days;
     if (s && s.focusId) { out.focusId = s.focusId; out.focusTs = s.focusTs || 1; }
+    if (s && /^\d\d:\d\d$/.test(s.remTime || "")) { out.remTime = s.remTime; out.remTs = s.remTs || 1; }
     return out;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -385,10 +386,12 @@
     var f = (a.focusTs || 0) >= (b.focusTs || 0) ? a : b;
     out.focusId = f.focusId; out.focusTs = f.focusTs || 0;
     if (out.focusId && !out.tasks.some(function (t) { return t.id === out.focusId && !t.done; })) out.focusId = null;
+    var r = (a.remTs || 0) >= (b.remTs || 0) ? a : b;
+    out.remTime = r.remTime || "09:00"; out.remTs = r.remTs || 0;
     return out;
   }
   function canon(s) {
-    return JSON.stringify({ tasks: s.tasks, deleted: s.deleted, days: s.days, focusId: s.focusId, focusTs: s.focusTs });
+    return JSON.stringify({ tasks: s.tasks, deleted: s.deleted, days: s.days, focusId: s.focusId, focusTs: s.focusTs, remTime: s.remTime, remTs: s.remTs });
   }
 
   // ---------- Sync engine ----------
@@ -609,6 +612,9 @@
 
     $("doneBanner").classList.toggle("show", doneToday());
     if (!running) $("startBtn").textContent = doneToday() ? "Go again (5 min)" : "Start 5 minutes";
+
+    var rt = $("remTime");
+    if (document.activeElement !== rt && rt.value !== state.remTime) rt.value = state.remTime;
   }
 
   // ---------- Task actions ----------
@@ -756,6 +762,12 @@
   });
   $("copyLinkBtn").addEventListener("click", function () {
     copyText(location.href, "App link copied.");
+  });
+  $("remTime").addEventListener("change", function () {
+    if (!/^\d\d:\d\d$/.test(this.value)) return;
+    state.remTime = this.value;
+    state.remTs = Date.now();
+    queuePush();
   });
 
   // ---------- Backup ----------
