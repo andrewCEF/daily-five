@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Five — Master List</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<style>
+  :root {
+    --ground: #EEF1F4;
+    --surface: #FFFFFF;
+    --surface-2: #F7F9FA;
+    --ink: #202B36;
+    --muted: #5C6B7A;
+    --line: #D9E0E6;
+    --accent: #D98E04;
+    --accent-ink: #7A4F02;
+    --accent-contrast: #FFFFFF;
+    --accent-soft: #FBF3E2;
+    --good: #3E7C4F;
+    --good-soft: #E8F2EB;
+    --danger: #A94436;
+    --ring-track: #E4E9ED;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #12171E;
+      --surface: #1A2129;
+      --surface-2: #202932;
+      --ink: #E6EBF0;
+      --muted: #8B99A8;
+      --line: #2C3641;
+      --accent: #F2A81D;
+      --accent-ink: #F7C35C;
+      --accent-contrast: #1A1206;
+      --accent-soft: #2A2416;
+      --good: #5CA36F;
+      --good-soft: #1B2A20;
+      --danger: #D0705F;
+      --ring-track: #26303A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171E;
+    --surface: #1A2129;
+    --surface-2: #202932;
+    --ink: #E6EBF0;
+    --muted: #8B99A8;
+    --line: #2C3641;
+    --accent: #F2A81D;
+    --accent-ink: #F7C35C;
+    --accent-contrast: #1A1206;
+    --accent-soft: #2A2416;
+    --good: #5CA36F;
+    --good-soft: #1B2A20;
+    --danger: #D0705F;
+    --ring-track: #26303A;
+  }
+  :root[data-theme="light"] {
+    --ground: #EEF1F4;
+    --surface: #FFFFFF;
+    --surface-2: #F7F9FA;
+    --ink: #202B36;
+    --muted: #5C6B7A;
+    --line: #D9E0E6;
+    --accent: #D98E04;
+    --accent-ink: #7A4F02;
+    --accent-contrast: #FFFFFF;
+    --accent-soft: #FBF3E2;
+    --good: #3E7C4F;
+    --good-soft: #E8F2EB;
+    --danger: #A94436;
+    --ring-track: #E4E9ED;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  header.app { display: flex; align-items: center; justify-content: space-between; padding: 0 .25rem; gap: .5rem; }
+  .wordmark { font-family: Georgia, "Times New Roman", serif; font-size: 1.45rem; font-weight: 400; letter-spacing: .01em; }
+  .wordmark b { color: var(--accent); font-weight: 700; }
+  .head-right { display: flex; align-items: center; gap: .6rem; }
+  .datechip { font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .sync-chip {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-size: .75rem; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: .15rem .6rem; background: var(--surface); cursor: pointer;
+  }
+  .sync-chip .dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--muted); }
+  .sync-chip.ok .dot { background: var(--good); }
+  .sync-chip.busy .dot { background: var(--accent); }
+  .sync-chip.err .dot { background: var(--danger); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.1rem;
+  }
+  .eyebrow {
+    font-size: .72rem; font-weight: 600; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 .5rem;
+  }
+
+  .focus-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.3rem; line-height: 1.3; text-wrap: balance;
+    margin: 0 0 1rem; min-height: 1.6em;
+  }
+  .focus-title.empty { color: var(--muted); font-style: italic; font-size: 1.05rem; }
+
+  .timer-row { display: flex; align-items: center; gap: 1.1rem; }
+  .ring {
+    --pct: 0;
+    width: 128px; height: 128px; border-radius: 50%;
+    background: conic-gradient(var(--accent) calc(var(--pct) * 1%), var(--ring-track) 0);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .ring-inner {
+    width: 106px; height: 106px; border-radius: 50%;
+    background: var(--surface);
+    display: grid; place-items: center;
+  }
+  .clock {
+    font-family: Consolas, "SF Mono", ui-monospace, monospace;
+    font-size: 1.7rem; font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  }
+  .timer-side { display: flex; flex-direction: column; gap: .55rem; flex: 1; min-width: 0; }
+  .timer-hint { font-size: .85rem; color: var(--muted); margin: 0; }
+
+  .done-banner {
+    display: none; align-items: center; gap: .6rem;
+    background: var(--good-soft); color: var(--good);
+    border-radius: 10px; padding: .6rem .8rem; font-weight: 600; font-size: .95rem;
+    margin-top: 1rem;
+  }
+  .done-banner.show { display: flex; }
+
+  button {
+    font: inherit; cursor: pointer; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+    padding: .55rem .9rem;
+  }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary {
+    background: var(--accent); border-color: var(--accent);
+    color: var(--accent-contrast); font-weight: 600;
+  }
+  button.ghost { background: transparent; }
+  button.small { padding: .35rem .65rem; font-size: .85rem; }
+  button:disabled { opacity: .45; cursor: default; }
+
+  .add-row { display: flex; gap: .5rem; }
+  input[type="text"], input[type="password"], input[type="time"] {
+    font: inherit; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: .55rem .75rem;
+  }
+  input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input::placeholder { color: var(--muted); }
+  .add-row input { flex: 1; min-width: 0; }
+
+  ul.tasks { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+  li.task {
+    display: flex; align-items: center; gap: .6rem;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: .5rem .6rem;
+  }
+  li.task.focused { border-color: var(--accent); background: var(--accent-soft); }
+  li.task .title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  li.task.completed .title { text-decoration: line-through; color: var(--muted); }
+  .task-check {
+    width: 1.35rem; height: 1.35rem; flex-shrink: 0;
+    accent-color: var(--good); cursor: pointer;
+  }
+  .icon-btn {
+    border: none; background: transparent; padding: .25rem .4rem;
+    font-size: 1rem; line-height: 1; border-radius: 8px; color: var(--muted);
+  }
+  .icon-btn.star-on { color: var(--accent); }
+  .empty-note { color: var(--muted); font-size: .9rem; margin: 1rem 0 0; text-align: center; }
+
+  details.done-group { margin-top: .8rem; }
+  details.done-group summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
+
+  .streak-row { display: flex; gap: .75rem; }
+  .stat {
+    flex: 1; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: .8rem 1rem; text-align: center;
+  }
+  .stat .num {
+    font-family: Consolas, "SF Mono", ui-monospace, monospace;
+    font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--accent-ink);
+  }
+  .stat .lbl { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  .tool-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .25rem; }
+  .note { font-size: .82rem; color: var(--muted); margin: .6rem 0 0; }
+  .note a { color: var(--accent-ink); }
+  .reminder-time { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  #importFile { display: none; }
+
+  .setup-steps { margin: .4rem 0 0; padding-left: 1.2rem; font-size: .9rem; display: flex; flex-direction: column; gap: .4rem; }
+  .setup-steps a { color: var(--accent-ink); font-weight: 600; }
+  .token-row { display: flex; gap: .5rem; margin-top: .7rem; }
+  .token-row input { flex: 1; min-width: 0; }
+  .sync-status-line { font-size: .88rem; margin: .3rem 0 0; }
+  .sync-status-line.ok { color: var(--good); font-weight: 600; }
+  .sync-status-line.err { color: var(--danger); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--ground);
+    border-radius: 10px; padding: .55rem 1rem; font-size: .9rem;
+    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+    max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="wordmark">Daily <b>Five</b></div>
+    <div class="head-right">
+      <button class="sync-chip" id="syncChip" title="Sync status"><span class="dot"></span><span id="syncChipText">sync off</span></button>
+      <div class="datechip" id="dateChip"></div>
+    </div>
+  </header>
+
+  <section class="card" id="setupCard" hidden aria-labelledby="setupLabel">
+    <p class="eyebrow" id="setupLabel">One-time setup: connect sync</p>
+    <p class="note" style="margin-top:0">Your list syncs through a private GitHub Gist. Connect each device once and everything stays in step automatically.</p>
+    <ol class="setup-steps">
+      <li><a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=Daily+Five+Sync" target="_blank" rel="noopener">Create the sync token</a> — sign in to GitHub, set Expiration to <b>No expiration</b>, leave only <b>gist</b> checked, and press <b>Generate token</b>.</li>
+      <li>Copy the token (starts with <code>ghp_</code>) and paste it here:</li>
+    </ol>
+    <div class="token-row">
+      <input type="password" id="tokenInput" placeholder="ghp_…" autocomplete="off">
+      <button class="primary" id="connectBtn">Connect</button>
+    </div>
+    <p class="sync-status-line" id="setupStatus"></p>
+  </section>
+
+  <section class="card" aria-labelledby="todayLabel">
+    <p class="eyebrow" id="todayLabel">Today's focus</p>
+    <h1 class="focus-title empty" id="focusTitle">Pick a task from your master list below.</h1>
+    <div class="timer-row">
+      <div class="ring" id="ring" role="timer" aria-label="Five minute timer">
+        <div class="ring-inner"><span class="clock" id="clock">5:00</span></div>
+      </div>
+      <div class="timer-side">
+        <button class="primary" id="startBtn">Start 5 minutes</button>
+        <button class="ghost small" id="resetBtn" disabled>Reset</button>
+        <p class="timer-hint">Five minutes counts. Do it badly if you have to — just start.</p>
+      </div>
+    </div>
+    <div class="done-banner" id="doneBanner">✓ Five minutes done today. Streak safe.</div>
+  </section>
+
+  <section class="card" aria-labelledby="listLabel">
+    <p class="eyebrow" id="listLabel">Master list</p>
+    <div class="add-row">
+      <input id="newTask" type="text" placeholder="Add a task…" maxlength="200" autocomplete="off">
+      <button class="primary" id="addBtn">Add</button>
+    </div>
+    <ul class="tasks" id="openList"></ul>
+    <p class="empty-note" id="emptyNote">Nothing here yet. Add the things you keep putting off.</p>
+    <div class="tool-row">
+      <button class="small" id="pickBtn">🎲 Pick one for me</button>
+    </div>
+    <details class="done-group" id="doneGroup" hidden>
+      <summary id="doneSummary">Completed</summary>
+      <ul class="tasks" id="doneList"></ul>
+    </details>
+  </section>
+
+  <div class="streak-row">
+    <div class="stat"><div class="num" id="streakNum">0</div><div class="lbl">day streak</div></div>
+    <div class="stat"><div class="num" id="totalNum">0</div><div class="lbl">days logged</div></div>
+    <div class="stat"><div class="num" id="openNum">0</div><div class="lbl">tasks open</div></div>
+  </div>
+
+  <section class="card" aria-labelledby="remindLabel">
+    <p class="eyebrow" id="remindLabel">Daily phone reminder</p>
+    <div class="reminder-time">
+      <label for="remTime">Remind me at</label>
+      <input type="time" id="remTime" value="09:00">
+      <button class="small" id="gcalBtn">Add to Google Calendar</button>
+      <button class="small" id="copyLinkBtn">Copy app link</button>
+    </div>
+    <p class="note">The calendar button creates a daily repeating event that notifies your phone and links back here.</p>
+  </section>
+
+  <section class="card" aria-labelledby="syncLabel">
+    <p class="eyebrow" id="syncLabel">Sync &amp; backup</p>
+    <p class="sync-status-line" id="syncInfo">Sync is off — connect it in the setup card above.</p>
+    <div class="tool-row">
+      <button class="small" id="syncNowBtn">Sync now</button>
+      <button class="small" id="exportBtn">Export backup</button>
+      <button class="small" id="importBtn">Import backup</button>
+      <button class="small ghost" id="disconnectBtn" hidden>Disconnect sync</button>
+      <input type="file" id="importFile" accept=".json,application/json">
+    </div>
+    <p class="note">Changes sync automatically a moment after you make them, and every 30 seconds while the app is open. Backups are still handy for peace of mind.</p>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "dailyfive.v2";
+  var TOKEN_KEY = "dailyfive.token";
+  var GIST_KEY = "dailyfive.gistid";
+  var GIST_FILE = "daily-five.json";
+  var DURATION = 5 * 60; // seconds
+
+  // ---------- State ----------
+  function blank() { return { v: 2, tasks: [], deleted: {}, days: {}, focusId: null, focusTs: 0 }; }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) return normalize(JSON.parse(raw));
+    } catch (e) {}
+    return blank();
+  }
+  function normalize(s) {
+    var out = blank();
+    if (s && Array.isArray(s.tasks)) {
+      out.tasks = s.tasks.map(function (t) {
+        return { id: String(t.id), title: String(t.title || ""), done: !!t.done, ts: t.ts || 1 };
+      });
+    }
+    if (s && s.deleted && typeof s.deleted === "object") out.deleted = s.deleted;
+    if (s && s.days && typeof s.days === "object") out.days = s.days;
+    if (s && s.focusId) { out.focusId = s.focusId; out.focusTs = s.focusTs || 1; }
+    return out;
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var state = load();
+
+  // Merge two states: newest-timestamp wins per task, deletions win via tombstones.
+  function merge(a, b) {
+    var out = blank();
+    var del = {};
+    [a.deleted, b.deleted].forEach(function (d) {
+      Object.keys(d || {}).forEach(function (id) { del[id] = Math.max(del[id] || 0, d[id]); });
+    });
+    var byId = {};
+    (a.tasks || []).concat(b.tasks || []).forEach(function (t) {
+      if (!byId[t.id] || (t.ts || 0) > (byId[t.id].ts || 0)) byId[t.id] = t;
+    });
+    out.tasks = Object.keys(byId)
+      .filter(function (id) { return !(del[id] && del[id] >= (byId[id].ts || 0)); })
+      .map(function (id) { return byId[id]; })
+      .sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); });
+    out.deleted = del;
+    [a.days, b.days].forEach(function (d) {
+      Object.keys(d || {}).forEach(function (k) { if (!out.days[k]) out.days[k] = d[k]; });
+    });
+    var f = (a.focusTs || 0) >= (b.focusTs || 0) ? a : b;
+    out.focusId = f.focusId; out.focusTs = f.focusTs || 0;
+    if (out.focusId && !out.tasks.some(function (t) { return t.id === out.focusId && !t.done; })) out.focusId = null;
+    return out;
+  }
+  function canon(s) {
+    return JSON.stringify({ tasks: s.tasks, deleted: s.deleted, days: s.days, focusId: s.focusId, focusTs: s.focusTs });
+  }
+
+  // ---------- Sync engine ----------
+  var token = null, gistId = null;
+  try { token = localStorage.getItem(TOKEN_KEY); gistId = localStorage.getItem(GIST_KEY); } catch (e) {}
+  var syncing = false, pushTimer = null, pollTimer = null;
+
+  function setChip(mode, text) {
+    var chip = document.getElementById("syncChip");
+    chip.className = "sync-chip " + mode;
+    document.getElementById("syncChipText").textContent = text;
+  }
+  function gh(method, path, body, tok) {
+    return fetch("https://api.github.com" + path + (method === "GET" ? (path.indexOf("?") < 0 ? "?" : "&") + "_=" + Date.now() : ""), {
+      method: method,
+      cache: "no-store",
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + (tok || token),
+        "Content-Type": "application/json"
+      },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) {
+      if (!r.ok) { var e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+      return r.status === 204 ? null : r.json();
+    });
+  }
+  // Locate this user's datastore gist by filename; create it if missing.
+  function locateGist(tok) {
+    return gh("GET", "/gists?per_page=100", null, tok).then(function (list) {
+      var hit = (list || []).find(function (g) { return g.files && g.files[GIST_FILE]; });
+      if (hit) return hit.id;
+      var files = {};
+      files[GIST_FILE] = { content: JSON.stringify(blank()) };
+      return gh("POST", "/gists", { description: "Daily Five task sync datastore", public: false, files: files }, tok)
+        .then(function (g) { return g.id; });
+    });
+  }
+  function pullRemote() {
+    return gh("GET", "/gists/" + gistId).then(function (g) {
+      var f = g.files && g.files[GIST_FILE];
+      if (!f || !f.content) return blank();
+      try { return normalize(JSON.parse(f.content)); } catch (e) { return blank(); }
+    });
+  }
+  function pushRemote(s) {
+    var files = {};
+    files[GIST_FILE] = { content: JSON.stringify(s) };
+    return gh("PATCH", "/gists/" + gistId, { files: files });
+  }
+  function syncNow(manual) {
+    if (!token || !gistId) { if (manual) toast("Connect sync first — see the setup card."); return Promise.resolve(); }
+    if (syncing) return Promise.resolve();
+    syncing = true;
+    setChip("busy", "syncing…");
+    return pullRemote().then(function (remote) {
+      var merged = merge(state, remote);
+      var changedLocal = canon(merged) !== canon(state);
+      var changedRemote = canon(merged) !== canon(remote);
+      state = merged;
+      if (changedLocal) { save(); render(); }
+      if (changedRemote) return pushRemote(merged);
+    }).then(function () {
+      syncing = false;
+      setChip("ok", "synced");
+      updateSyncCard();
+      if (manual) toast("Synced.");
+    }).catch(function (err) {
+      syncing = false;
+      if (err && (err.status === 401 || err.status === 403)) {
+        setChip("err", "token error");
+        document.getElementById("syncInfo").textContent = "Sync token was rejected — disconnect and connect again with a fresh token.";
+        document.getElementById("syncInfo").className = "sync-status-line err";
+      } else {
+        setChip("err", "offline");
+        if (manual) toast("Couldn't reach GitHub — will retry automatically.");
+      }
+    });
+  }
+  function queuePush() {
+    save(); render();
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () { syncNow(false); }, 1200);
+  }
+  function startPolling() {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(function () {
+      if (!document.hidden) syncNow(false);
+    }, 30000);
+  }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) syncNow(false); });
+  window.addEventListener("online", function () { syncNow(false); });
+
+  function updateSyncCard() {
+    var connected = !!(token && gistId);
+    document.getElementById("setupCard").hidden = connected;
+    document.getElementById("disconnectBtn").hidden = !connected;
+    var info = document.getElementById("syncInfo");
+    if (connected) {
+      info.textContent = "✓ Sync is on — this device stays in step with your other devices automatically.";
+      info.className = "sync-status-line ok";
+    } else {
+      info.textContent = "Sync is off — connect it in the setup card above.";
+      info.className = "sync-status-line";
+      setChip("", "sync off");
+    }
+  }
+  document.getElementById("connectBtn").addEventListener("click", function () {
+    var t = document.getElementById("tokenInput").value.trim();
+    var status = document.getElementById("setupStatus");
+    if (!t) { status.textContent = "Paste the token first."; status.className = "sync-status-line err"; return; }
+    status.textContent = "Checking token…"; status.className = "sync-status-line";
+    locateGist(t).then(function (id) {
+      token = t;
+      gistId = id;
+      try { localStorage.setItem(TOKEN_KEY, t); localStorage.setItem(GIST_KEY, id); } catch (e) {}
+      document.getElementById("tokenInput").value = "";
+      status.textContent = "";
+      updateSyncCard();
+      startPolling();
+      syncNow(false).then(function () { toast("✓ Sync connected."); });
+    }).catch(function (err) {
+      status.className = "sync-status-line err";
+      status.textContent = err && err.status === 401
+        ? "GitHub rejected that token — copy it again and retry."
+        : "Couldn't reach your list — make sure the \"gist\" scope was checked when creating the token, then generate a new one.";
+    });
+  });
+  document.getElementById("disconnectBtn").addEventListener("click", function () {
+    token = null;
+    gistId = null;
+    try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(GIST_KEY); } catch (e) {}
+    clearInterval(pollTimer);
+    updateSyncCard();
+    toast("Sync disconnected on this device. Your list stays here.");
+  });
+  document.getElementById("syncNowBtn").addEventListener("click", function () { syncNow(true); });
+  document.getElementById("syncChip").addEventListener("click", function () {
+    if (!token) document.getElementById("setupCard").scrollIntoView({ behavior: "smooth" });
+    else syncNow(true);
+  });
+
+  // ---------- Dates / streak ----------
+  function dateKey(d) {
+    d = d || new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function today() { return dateKey(); }
+  function doneToday() { return !!state.days[today()]; }
+  function streak() {
+    var n = 0, d = new Date();
+    if (!state.days[dateKey(d)]) d.setDate(d.getDate() - 1);
+    while (state.days[dateKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+
+  // ---------- UI helpers ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2600);
+  }
+  function copyText(text, okMsg) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, function () { toast("Copy failed."); });
+    } else { toast("Copy not available on this browser."); }
+  }
+  function esc(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function openTasks() { return state.tasks.filter(function (t) { return !t.done; }); }
+
+  // ---------- Rendering ----------
+  function render() {
+    var open = openTasks();
+    var done = state.tasks.filter(function (t) { return t.done; });
+
+    var focus = state.tasks.find(function (t) { return t.id === state.focusId && !t.done; });
+    var ft = $("focusTitle");
+    if (focus) { ft.textContent = focus.title; ft.classList.remove("empty"); }
+    else {
+      ft.textContent = open.length ? "Pick a task from your master list below." : "Add a task below, then pick one to focus on.";
+      ft.classList.add("empty");
+    }
+
+    $("openList").innerHTML = open.map(function (t) {
+      var isFocus = t.id === state.focusId;
+      return '<li class="task' + (isFocus ? " focused" : "") + '" data-id="' + t.id + '">' +
+        '<input type="checkbox" class="task-check" aria-label="Mark complete">' +
+        '<span class="title">' + esc(t.title) + "</span>" +
+        '<button class="icon-btn star' + (isFocus ? " star-on" : "") + '" title="Focus on this today" aria-label="Focus on this today">' + (isFocus ? "★" : "☆") + "</button>" +
+        '<button class="icon-btn del" title="Delete" aria-label="Delete task">✕</button>' +
+        "</li>";
+    }).join("");
+
+    $("doneList").innerHTML = done.map(function (t) {
+      return '<li class="task completed" data-id="' + t.id + '">' +
+        '<input type="checkbox" class="task-check" checked aria-label="Mark not complete">' +
+        '<span class="title">' + esc(t.title) + "</span>" +
+        '<button class="icon-btn del" title="Delete" aria-label="Delete task">✕</button>' +
+        "</li>";
+    }).join("");
+    $("doneGroup").hidden = done.length === 0;
+    $("doneSummary").textContent = "Completed (" + done.length + ")";
+
+    $("emptyNote").style.display = open.length ? "none" : "";
+    $("pickBtn").disabled = open.length === 0;
+
+    $("streakNum").textContent = streak();
+    $("totalNum").textContent = Object.keys(state.days).length;
+    $("openNum").textContent = open.length;
+
+    $("doneBanner").classList.toggle("show", doneToday());
+    if (!running) $("startBtn").textContent = doneToday() ? "Go again (5 min)" : "Start 5 minutes";
+  }
+
+  // ---------- Task actions ----------
+  function addTask() {
+    var inp = $("newTask");
+    var title = inp.value.trim();
+    if (!title) return;
+    state.tasks.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      title: title, done: false, ts: Date.now()
+    });
+    inp.value = "";
+    inp.focus();
+    queuePush();
+  }
+  $("addBtn").addEventListener("click", addTask);
+  $("newTask").addEventListener("keydown", function (e) { if (e.key === "Enter") addTask(); });
+
+  function onListClick(e) {
+    var li = e.target.closest("li.task");
+    if (!li) return;
+    var id = li.getAttribute("data-id");
+    var task = state.tasks.find(function (t) { return t.id === id; });
+    if (!task) return;
+
+    if (e.target.classList.contains("task-check")) {
+      task.done = e.target.checked;
+      task.ts = Date.now();
+      if (task.done && state.focusId === id) { state.focusId = null; state.focusTs = Date.now(); }
+      queuePush();
+    } else if (e.target.classList.contains("star")) {
+      state.focusId = state.focusId === id ? null : id;
+      state.focusTs = Date.now();
+      queuePush();
+    } else if (e.target.classList.contains("del")) {
+      state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
+      state.deleted[id] = Date.now();
+      if (state.focusId === id) { state.focusId = null; state.focusTs = Date.now(); }
+      queuePush();
+      toast("Task deleted.");
+    }
+  }
+  $("openList").addEventListener("click", onListClick);
+  $("doneList").addEventListener("click", onListClick);
+
+  $("pickBtn").addEventListener("click", function () {
+    var open = openTasks();
+    if (!open.length) return;
+    var pick = open[Math.floor(Math.random() * open.length)];
+    state.focusId = pick.id;
+    state.focusTs = Date.now();
+    queuePush();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ---------- Timer ----------
+  var running = false, endAt = 0, tickHandle = null, remaining = DURATION;
+
+  function fmt(s) {
+    s = Math.max(0, Math.ceil(s));
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  }
+  function paintTimer() {
+    $("clock").textContent = fmt(remaining);
+    $("ring").style.setProperty("--pct", 100 * (1 - remaining / DURATION));
+  }
+  function tick() {
+    remaining = (endAt - Date.now()) / 1000;
+    if (remaining <= 0) { finishSession(); return; }
+    paintTimer();
+  }
+  function beep() {
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      var ctx = new Ctx();
+      [0, 0.22, 0.44].forEach(function (t) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = 880;
+        g.gain.setValueAtTime(0.001, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.2);
+      });
+    } catch (e) {}
+  }
+  function finishSession() {
+    clearInterval(tickHandle);
+    running = false;
+    remaining = 0;
+    paintTimer();
+    var focus = state.tasks.find(function (t) { return t.id === state.focusId; });
+    state.days[today()] = { taskId: state.focusId, task: focus ? focus.title : null, minutes: 5 };
+    beep();
+    resetTimer(true);
+    queuePush();
+    toast("✓ Five minutes logged. Nice.");
+  }
+  function resetTimer(keepDisabled) {
+    clearInterval(tickHandle);
+    running = false;
+    remaining = DURATION;
+    paintTimer();
+    $("startBtn").disabled = false;
+    $("resetBtn").disabled = !!keepDisabled;
+    render();
+  }
+  $("startBtn").addEventListener("click", function () {
+    if (running) {
+      clearInterval(tickHandle);
+      running = false;
+      remaining = (endAt - Date.now()) / 1000;
+      $("startBtn").textContent = "Resume";
+      return;
+    }
+    endAt = Date.now() + remaining * 1000;
+    running = true;
+    tickHandle = setInterval(tick, 250);
+    $("startBtn").textContent = "Pause";
+    $("resetBtn").disabled = false;
+  });
+  $("resetBtn").addEventListener("click", function () { resetTimer(true); });
+
+  // ---------- Reminders ----------
+  function gcalUrl() {
+    var t = ($("remTime").value || "09:00").split(":");
+    var d = new Date();
+    d.setHours(+t[0], +t[1], 0, 0);
+    if (d < new Date()) d.setDate(d.getDate() + 1);
+    function stamp(x) {
+      return x.getFullYear() + String(x.getMonth() + 1).padStart(2, "0") + String(x.getDate()).padStart(2, "0") +
+        "T" + String(x.getHours()).padStart(2, "0") + String(x.getMinutes()).padStart(2, "0") + "00";
+    }
+    var end = new Date(d.getTime() + 5 * 60000);
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+      "&text=" + encodeURIComponent("Daily Five — 5 minutes on your list") +
+      "&details=" + encodeURIComponent("Open your master list and do 5 minutes on one task:\n" + location.href) +
+      "&dates=" + stamp(d) + "/" + stamp(end) +
+      "&recur=" + encodeURIComponent("RRULE:FREQ=DAILY");
+  }
+  $("gcalBtn").addEventListener("click", function () {
+    var url = gcalUrl();
+    var w = window.open(url, "_blank", "noopener");
+    if (!w) copyText(url, "Pop-ups blocked — calendar link copied instead.");
+  });
+  $("copyLinkBtn").addEventListener("click", function () {
+    copyText(location.href, "App link copied.");
+  });
+
+  // ---------- Backup ----------
+  $("exportBtn").addEventListener("click", function () {
+    var data = JSON.stringify(state, null, 2);
+    var a = document.createElement("a");
+    a.href = "data:application/json;charset=utf-8," + encodeURIComponent(data);
+    a.download = "daily-five-backup.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast("Backup downloaded.");
+  });
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var incoming = normalize(JSON.parse(r.result));
+        if (!Array.isArray(incoming.tasks)) throw new Error("bad shape");
+        state = merge(state, incoming);
+        queuePush();
+        toast("Backup imported and merged.");
+      } catch (e) {
+        toast("That file doesn't look like a Daily Five backup.");
+      }
+    };
+    r.readAsText(f);
+    this.value = "";
+  });
+
+  // ---------- Init ----------
+  $("dateChip").textContent = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  paintTimer();
+  render();
+  updateSyncCard();
+  if (token && gistId) {
+    startPolling();
+    syncNow(false);
+  }
+})();
+</script>
+</body>
+</html>
