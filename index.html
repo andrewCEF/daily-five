@@ -184,7 +184,10 @@
   }
   li.task.focused { border-color: var(--accent); background: var(--accent-soft); }
   li.task .title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-  li.task.completed .title { text-decoration: line-through; color: var(--muted); }
+  li.task.completed .title, li.task.donetoday .title { text-decoration: line-through; color: var(--muted); }
+  .icon-btn.rep-on { color: var(--accent); font-weight: 700; }
+  #repeatToggle { padding: .55rem .7rem; font-size: 1.05rem; line-height: 1; color: var(--muted); }
+  #repeatToggle[aria-pressed="true"] { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .task-check {
     width: 1.35rem; height: 1.35rem; flex-shrink: 0;
     accent-color: var(--good); cursor: pointer;
@@ -282,8 +285,10 @@
     <p class="eyebrow" id="listLabel">Master list</p>
     <div class="add-row">
       <input id="newTask" type="text" placeholder="Add a task…" maxlength="200" autocomplete="off">
+      <button id="repeatToggle" aria-pressed="false" title="Repeat daily">↻</button>
       <button class="primary" id="addBtn">Add</button>
     </div>
+    <p class="note" style="margin-top:.45rem">↻ = repeats daily (habits like "Meditate") — checking it off clears it for today only; it's back tomorrow.</p>
     <ul class="tasks" id="openList"></ul>
     <p class="empty-note" id="emptyNote">Nothing here yet. Add the things you keep putting off.</p>
     <div class="tool-row">
@@ -351,7 +356,10 @@
     var out = blank();
     if (s && Array.isArray(s.tasks)) {
       out.tasks = s.tasks.map(function (t) {
-        return { id: String(t.id), title: String(t.title || ""), done: !!t.done, ts: t.ts || 1 };
+        return {
+          id: String(t.id), title: String(t.title || ""), done: !!t.done, ts: t.ts || 1,
+          repeat: !!t.repeat, doneDays: (t.doneDays && typeof t.doneDays === "object") ? t.doneDays : {}
+        };
       });
     }
     if (s && s.deleted && typeof s.deleted === "object") out.deleted = s.deleted;
@@ -385,7 +393,7 @@
     });
     var f = (a.focusTs || 0) >= (b.focusTs || 0) ? a : b;
     out.focusId = f.focusId; out.focusTs = f.focusTs || 0;
-    if (out.focusId && !out.tasks.some(function (t) { return t.id === out.focusId && !t.done; })) out.focusId = null;
+    if (out.focusId && !out.tasks.some(function (t) { return t.id === out.focusId && (t.repeat || !t.done); })) out.focusId = null;
     var r = (a.remTs || 0) >= (b.remTs || 0) ? a : b;
     out.remTime = r.remTime || "09:00"; out.remTs = r.remTs || 0;
     return out;
@@ -568,14 +576,15 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function openTasks() { return state.tasks.filter(function (t) { return !t.done; }); }
+  function openTasks() { return state.tasks.filter(function (t) { return t.repeat || !t.done; }); }
+  function isDoneToday(t) { return t.repeat ? !!(t.doneDays && t.doneDays[today()]) : t.done; }
 
   // ---------- Rendering ----------
   function render() {
     var open = openTasks();
-    var done = state.tasks.filter(function (t) { return t.done; });
+    var done = state.tasks.filter(function (t) { return !t.repeat && t.done; });
 
-    var focus = state.tasks.find(function (t) { return t.id === state.focusId && !t.done; });
+    var focus = state.tasks.find(function (t) { return t.id === state.focusId && (t.repeat || !t.done); });
     var ft = $("focusTitle");
     if (focus) { ft.textContent = focus.title; ft.classList.remove("empty"); }
     else {
@@ -585,9 +594,11 @@
 
     $("openList").innerHTML = open.map(function (t) {
       var isFocus = t.id === state.focusId;
-      return '<li class="task' + (isFocus ? " focused" : "") + '" data-id="' + t.id + '">' +
-        '<input type="checkbox" class="task-check" aria-label="Mark complete">' +
+      var dToday = isDoneToday(t);
+      return '<li class="task' + (isFocus ? " focused" : "") + (dToday && t.repeat ? " donetoday" : "") + '" data-id="' + t.id + '">' +
+        '<input type="checkbox" class="task-check"' + (dToday ? " checked" : "") + ' aria-label="' + (t.repeat ? "Mark done for today" : "Mark complete") + '">' +
         '<span class="title">' + esc(t.title) + "</span>" +
+        '<button class="icon-btn rep' + (t.repeat ? " rep-on" : "") + '" title="' + (t.repeat ? "Repeats daily — tap to make one-time" : "Tap to repeat daily") + '" aria-label="Toggle daily repeat">↻</button>' +
         '<button class="icon-btn star' + (isFocus ? " star-on" : "") + '" title="Focus on this today" aria-label="Focus on this today">' + (isFocus ? "★" : "☆") + "</button>" +
         '<button class="icon-btn del" title="Delete" aria-label="Delete task">✕</button>' +
         "</li>";
@@ -622,15 +633,19 @@
     var inp = $("newTask");
     var title = inp.value.trim();
     if (!title) return;
+    var rep = $("repeatToggle").getAttribute("aria-pressed") === "true";
     state.tasks.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      title: title, done: false, ts: Date.now()
+      title: title, done: false, ts: Date.now(), repeat: rep, doneDays: {}
     });
     inp.value = "";
     inp.focus();
     queuePush();
   }
   $("addBtn").addEventListener("click", addTask);
+  $("repeatToggle").addEventListener("click", function () {
+    this.setAttribute("aria-pressed", this.getAttribute("aria-pressed") === "true" ? "false" : "true");
+  });
   $("newTask").addEventListener("keydown", function (e) { if (e.key === "Enter") addTask(); });
 
   function onListClick(e) {
@@ -641,10 +656,20 @@
     if (!task) return;
 
     if (e.target.classList.contains("task-check")) {
-      task.done = e.target.checked;
+      if (task.repeat) {
+        if (e.target.checked) task.doneDays[today()] = Date.now();
+        else delete task.doneDays[today()];
+      } else {
+        task.done = e.target.checked;
+        if (task.done && state.focusId === id) { state.focusId = null; state.focusTs = Date.now(); }
+      }
       task.ts = Date.now();
-      if (task.done && state.focusId === id) { state.focusId = null; state.focusTs = Date.now(); }
       queuePush();
+    } else if (e.target.classList.contains("rep")) {
+      task.repeat = !task.repeat;
+      task.ts = Date.now();
+      queuePush();
+      toast(task.repeat ? "↻ Now repeats daily — checking it off only clears it for the day." : "Now a one-time task.");
     } else if (e.target.classList.contains("star")) {
       state.focusId = state.focusId === id ? null : id;
       state.focusTs = Date.now();
@@ -663,6 +688,8 @@
   $("pickBtn").addEventListener("click", function () {
     var open = openTasks();
     if (!open.length) return;
+    var fresh = open.filter(function (t) { return !isDoneToday(t); });
+    if (fresh.length) open = fresh;
     var pick = open[Math.floor(Math.random() * open.length)];
     state.focusId = pick.id;
     state.focusTs = Date.now();
@@ -708,6 +735,7 @@
     paintTimer();
     var focus = state.tasks.find(function (t) { return t.id === state.focusId; });
     state.days[today()] = { taskId: state.focusId, task: focus ? focus.title : null, minutes: 5 };
+    if (focus && focus.repeat) { focus.doneDays[today()] = Date.now(); focus.ts = Date.now(); }
     beep();
     resetTimer(true);
     queuePush();
@@ -802,6 +830,14 @@
   });
 
   // ---------- Init ----------
+  var lastDay = today();
+  setInterval(function () {
+    if (today() !== lastDay) {
+      lastDay = today();
+      $("dateChip").textContent = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      render();
+    }
+  }, 60000);
   $("dateChip").textContent = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   paintTimer();
   render();
